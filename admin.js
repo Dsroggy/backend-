@@ -1,3 +1,4 @@
+// ================= FIREBASE IMPORTS =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -11,7 +12,7 @@ import {
   addDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* 🔥 FIREBASE CONFIG (UNCHANGED) */
+// ================= FIREBASE CONFIG (UNCHANGED) =================
 const firebaseConfig = {
   apiKey: "AIzaSyCWpp-y0OQ0RfT3ghf5zCnZGWgIzhUbudU",
   authDomain: "dsr-super-admin.firebaseapp.com",
@@ -19,59 +20,57 @@ const firebaseConfig = {
   appId: "1:494683172524:web:c7d40a4456d574fc187909"
 };
 
+// ================= INIT =================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ===== LOGIN ===== */
+// ===================================================
+// 🔐 LOGIN — FINAL GUARANTEED FIX
+// ===================================================
 window.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
-  if (!form) return;
+  if (!form) return; // dashboard page
+
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const errorBox = document.getElementById("error");
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const email = email.value.trim();
-    const password = password.value.trim();
-    const errorBox = document.getElementById("error");
+    const emailValue = emailInput.value.trim();
+    const passwordValue = passwordInput.value.trim();
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then(() => location.href = "dashboard.html")
-      .catch(err => errorBox.innerText = err.message);
+    if (!emailValue || !passwordValue) {
+      errorBox.innerText = "Email aur password dono bharo";
+      return;
+    }
+
+    errorBox.innerText = "Logging in...";
+
+    signInWithEmailAndPassword(auth, emailValue, passwordValue)
+      .then(() => {
+        window.location.href = "dashboard.html";
+      })
+      .catch(err => {
+        errorBox.innerText = err.message;
+        console.error("LOGIN ERROR:", err);
+      });
   });
 });
 
-/* ===== AUTH PROTECT ===== */
+// ===================================================
+// 🔒 DASHBOARD PROTECTION
+// ===================================================
 window.checkAuth = () => {
-  onAuthStateChanged(auth, user => {
-    if (!user) location.href = "index.html";
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "index.html";
+    }
   });
 };
 
-/* ===== LOGOUT ===== */
-window.logout = () => {
-  signOut(auth).then(() => location.href = "index.html");
-};
-
-/* ===== UI ===== */
-window.showSection = id => {
-  document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-};
-
-/* ===== CMS ===== */
-window.addPage = async () => {
-  await addDoc(collection(db, "pages"), {
-    title: pageTitle.value,
-    content: pageContent.value,
-    created: new Date()
-  });
-  pageStatus.innerText = "Page saved";
-};
-
-window.addVideo = async () => {
-  await addDoc(collection(db, "videos"), {
-    title: videoTitle.value,
-    url: videoURL.value
-  });
-  videoStatus.innerText = "Video saved
+// ===================================================
+// 🚪 LOGOUT
+/
